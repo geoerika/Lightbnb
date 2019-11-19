@@ -23,12 +23,16 @@ module.exports = function(router, database) {
    * @param {String} email
    * @param {String} password encrypted
    */
-  const login =  function(email, password) {
+  const login =  async function(email, password) {
+
     return database.getUserWithEmail(email)
     .then(user => {
-      if (bcrypt.compareSync(password, user.password)) {
+      console.log('user1:', user);
+      if (user && bcrypt.compareSync(password, user.password)) {
+        console.log('user2:', user);
         return user;
       }
+      console.log('no user found');
       return null;
     });
   }
@@ -36,8 +40,10 @@ module.exports = function(router, database) {
 
   router.post('/login', (req, res) => {
     const {email, password} = req.body;
+    console.log('router login:', req.body);
     login(email, password)
       .then(user => {
+        console.log('user in router post: ', user);
         if (!user) {
           res.send({error: "error"});
           return;
@@ -47,7 +53,7 @@ module.exports = function(router, database) {
       })
       .catch(e => res.send(e));
   });
-  
+
   router.post('/logout', (req, res) => {
     req.session.userId = null;
     res.send({});
@@ -66,7 +72,7 @@ module.exports = function(router, database) {
           res.send({error: "no user with that id"});
           return;
         }
-    
+
         res.send({user: {name: user.name, email: user.email, id: userId}});
       })
       .catch(e => res.send(e));
