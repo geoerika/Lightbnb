@@ -7,11 +7,12 @@ module.exports = function(router, database) {
     const user = req.body;
     user.password = bcrypt.hashSync(user.password, 12);
     database.addUser(user)
-    .then(user => {
-      if (!user) {
+    .then(users => {
+      if (users.length === 0) {
         res.send({error: "error"});
         return;
       }
+      let user = users[0];
       req.session.userId = user.id;
       res.send("🤗");
     })
@@ -26,10 +27,12 @@ module.exports = function(router, database) {
   const login =  async function(email, password) {
 
     return database.getUserWithEmail(email)
-    .then(user => {
-      console.log('user1:', user);
+    .then(users => {
+      let user;
+      if (users.length > 0) {
+        user = users[0];
+      }
       if (user && bcrypt.compareSync(password, user.password)) {
-        console.log('user2:', user);
         return user;
       }
       console.log('no user found');
@@ -40,10 +43,8 @@ module.exports = function(router, database) {
 
   router.post('/login', (req, res) => {
     const {email, password} = req.body;
-    console.log('router login:', req.body);
     login(email, password)
       .then(user => {
-        console.log('user in router post: ', user);
         if (!user) {
           res.send({error: "error"});
           return;
@@ -67,12 +68,12 @@ module.exports = function(router, database) {
     }
 
     database.getUserWithId(userId)
-      .then(user => {
-        if (!user) {
+      .then(users => {
+        if (users.length === 0) {
           res.send({error: "no user with that id"});
           return;
         }
-
+        let user = users[0];
         res.send({user: {name: user.name, email: user.email, id: userId}});
       })
       .catch(e => res.send(e));
