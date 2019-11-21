@@ -10,6 +10,8 @@ const pool = new Pool({
   database: 'lightbnb'
 });
 
+const db = require('./db')
+
 /// Users
 
 /**
@@ -22,16 +24,7 @@ const getUserWithEmail = function(email) {
   const values = [email];
   const queryString = ('SELECT * FROM users WHERE email = $1');
 
-  return pool.query(queryString, values)
-  .then(res => {
-    console.log('res.rows:', res.rows);
-    if (res.rows.length) {
-       return res.rows[0];
-    } else {
-       return null;
-    };
-  })
-  .catch(err => console.err('query error', err.stack));
+  return db.query(queryString, values);
 }
 exports.getUserWithEmail = getUserWithEmail;
 
@@ -45,15 +38,7 @@ const getUserWithId = function(id) {
   const values = [id];
   const queryString = ('SELECT * FROM users WHERE id = $1');
 
-  return pool.query(queryString, values)
-  .then(res => {
-    if (res.rows.length) {
-       return res.rows[0];
-    } else {
-       return null;
-    };
-  })
-  .catch(err => console.err('query error', err.stack));
+  return db.query(queryString, values);
 }
 exports.getUserWithId = getUserWithId;
 
@@ -70,17 +55,7 @@ const addUser =  function(user) {
     VALUES ($1, $2, $3) RETURNING *;
   `);
 
-  return pool.query(queryString, values)
-  .then(res => {
-    res.rows.forEach(user => {
-      if (user) {
-        return user.id;
-      } else {
-        return null;
-      }
-    })
-  })
-  .catch(err => console.err('query error', err.stack));
+  return db.query(queryString, values);
   // const userId = Object.keys(users).length + 1;
   // user.id = userId;
   // users[userId] = user;
@@ -110,16 +85,7 @@ const getAllReservations = function(guest_id, limit = 10) {
     ORDER BY reservations.start_date DESC
     LIMIT $2;
   `);
-  return pool.query(queryString, values)
-    .then(res => {
-      console.log('reservations:', res.rows);
-      if (res.rows.length) {
-        return res.rows;
-      } else {
-        return null;
-      }
-    })
-    .catch(err => console.err('query error', err.stack));
+  return db.query(queryString, values);
 }
 exports.getAllReservations = getAllReservations;
 
@@ -180,9 +146,7 @@ const getAllProperties = function(options, limit = 10) {
     LIMIT $${queryParams.length};
   `;
 
-  return pool.query(queryString, queryParams)
-  .then(res => res.rows)
-  .catch(err => console.err('query error', err.stack));
+  return db.query(queryString, queryParams);
 }
 exports.getAllProperties = getAllProperties;
 
@@ -219,17 +183,7 @@ const addProperty = function(property) {
     RETURNING *;
   `);
 
-  return pool.query(queryString, values)
-  .then(res => {
-    if (res.rows.length) {
-      console.log('included property:', res.rows);
-      return res.rows[0];
-    } else {
-      return null;
-    }
-  })
-  .catch(err => console.err('query error', err.stack));
-
+  return db.query(queryString, values);
 
   // const propertyId = Object.keys(properties).length + 1;
   // property.id = propertyId;
